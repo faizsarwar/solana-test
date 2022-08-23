@@ -83,9 +83,10 @@ pub mod deposit_withdraw {
 #[derive(Accounts)]
 #[instruction(nonce: u8)]
 pub struct Initialize<'info> {
+     /// CHECK: This is not dangerous because we don't read or write from this account
     authority: UncheckedAccount<'info>,
+    #[account(mut)]
     owner: Signer<'info>,
-
     #[account(init,payer = owner,space= 8+8)]
     pub amount_deposited : Account<'info,AmountDeposited>,
     
@@ -95,6 +96,7 @@ pub struct Initialize<'info> {
         ],
         bump = nonce,
     )]
+    /// CHECK: This is not dangerous because we don't read or write from this account
     pool_signer: UncheckedAccount<'info>,
     #[account(
         zero,
@@ -107,6 +109,7 @@ pub struct Initialize<'info> {
         ],
         bump = nonce,
     )]
+    /// CHECK: This is not dangerous because we don't read or write from this account
     vault: AccountInfo<'info>,
 
     system_program: Program<'info, System>,
@@ -122,10 +125,12 @@ pub struct Deposit<'info> {
     )]
     pool: Box<Account<'info, Pool>>,
     #[account(mut)]
+    /// CHECK: This is not dangerous because we don't read or write from this account
     vault: AccountInfo<'info>,
     #[account(
         mut,
     )]
+    /// CHECK: This is not dangerous because we don't read or write from this account
     depositor: AccountInfo<'info>,
     #[account(
         seeds = [
@@ -133,6 +138,7 @@ pub struct Deposit<'info> {
         ],
         bump = pool.nonce,
     )]
+    /// CHECK: This is not dangerous because we don't read or write from this account
     pool_signer: UncheckedAccount<'info>,
     system_program: Program<'info, System>,
 }
@@ -146,12 +152,14 @@ pub struct Withdraw<'info> {
         has_one = vault,
     )]
     pool: Box<Account<'info, Pool>>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
     vault: AccountInfo<'info>,
     #[account(
         mut,
         constraint = pool.authority == receiver.key(),
     )]
+    /// CHECK: This is not dangerous because we don't read or write from this account 
     receiver: AccountInfo<'info>,
     #[account(
         seeds = [
@@ -159,6 +167,7 @@ pub struct Withdraw<'info> {
         ],
         bump = pool.nonce,
     )]
+    /// CHECK: This is not dangerous because we don't read or write from this account
     pool_signer: UncheckedAccount<'info>,
     system_program: Program<'info, System>,
 }
