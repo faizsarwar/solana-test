@@ -11,9 +11,7 @@ pub mod deposit_withdraw {
         pool.authority = ctx.accounts.authority.key();
         pool.vault = ctx.accounts.vault.key();
         pool.nonce = nonce;
-        let amount_deposited= &mut ctx.accounts.amount_deposited;
-        amount_deposited.amount = 0;
-
+        pool.amount = 0;
         Ok(())
     }
 
@@ -29,10 +27,9 @@ pub mod deposit_withdraw {
                                                                 ctx.accounts.vault.to_account_info(), 
                                                             ])?;
 
-        let amount_deposited= &mut ctx.accounts.amount_deposited;
+        let amount_deposited= &mut ctx.accounts.pool;
         amount_deposited.amount += amount;
 
-        
 
         Ok(())
     }
@@ -49,12 +46,12 @@ pub mod deposit_withdraw {
             return Err(ErrorCode::NotEnoughPoolAmount.into());
         }
 
-        if amount > ctx.accounts.amount_deposited.amount {
+        if amount > ctx.accounts.pool.amount {
             return Err(ErrorCode::NotEnoughAmountToWithdraw.into());
         }
 
         let amount_as_float = amount as f64;
-        if amount_as_float > 0.5 {
+        if amount_as_float < 0.5 {
             return Err(ErrorCode::MinWithdrawError.into());
         }
 
@@ -71,7 +68,7 @@ pub mod deposit_withdraw {
             signer,
         )?;
 
-        let amount_deposited= &mut ctx.accounts.amount_deposited;
+        let amount_deposited= &mut ctx.accounts.pool;
         amount_deposited.amount -= amount;
 
 
@@ -80,23 +77,20 @@ pub mod deposit_withdraw {
 
 }
 
+
 #[derive(Accounts)]
 #[instruction(nonce: u8)]
 pub struct Initialize<'info> {
-     /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK
     authority: UncheckedAccount<'info>,
-    #[account(mut)]
     owner: Signer<'info>,
-    #[account(init,payer = owner,space= 8+8)]
-    pub amount_deposited : Account<'info,AmountDeposited>,
-    
     #[account(
         seeds = [
             pool.to_account_info().key.as_ref(),
         ],
         bump = nonce,
     )]
-    /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK
     pool_signer: UncheckedAccount<'info>,
     #[account(
         zero,
@@ -109,28 +103,25 @@ pub struct Initialize<'info> {
         ],
         bump = nonce,
     )]
-    /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK
     vault: AccountInfo<'info>,
-
     system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct Deposit<'info> {
-    #[account(mut)]
-    pub amount_deposited : Account<'info,AmountDeposited>,
     #[account(
         mut, 
         has_one = vault,
     )]
     pool: Box<Account<'info, Pool>>,
     #[account(mut)]
-    /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK
     vault: AccountInfo<'info>,
     #[account(
         mut,
     )]
-    /// CHECK: This is not dangerous because we don't read or write from this account
+        /// CHECK
     depositor: AccountInfo<'info>,
     #[account(
         seeds = [
@@ -138,28 +129,26 @@ pub struct Deposit<'info> {
         ],
         bump = pool.nonce,
     )]
-    /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK
     pool_signer: UncheckedAccount<'info>,
     system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
-    #[account(mut)]
-    pub amount_deposited : Account<'info,AmountDeposited>,
     #[account(
         mut, 
         has_one = vault,
     )]
     pool: Box<Account<'info, Pool>>,
-    /// CHECK: This is not dangerous because we don't read or write from this account
     #[account(mut)]
+    /// CHECK
     vault: AccountInfo<'info>,
     #[account(
         mut,
         constraint = pool.authority == receiver.key(),
     )]
-    /// CHECK: This is not dangerous because we don't read or write from this account 
+    /// CHECK
     receiver: AccountInfo<'info>,
     #[account(
         seeds = [
@@ -167,7 +156,7 @@ pub struct Withdraw<'info> {
         ],
         bump = pool.nonce,
     )]
-    /// CHECK: This is not dangerous because we don't read or write from this account
+    /// CHECK
     pool_signer: UncheckedAccount<'info>,
     system_program: Program<'info, System>,
 }
@@ -177,10 +166,6 @@ pub struct Pool {
     pub authority: Pubkey,
     pub nonce: u8,
     pub vault: Pubkey,
-}
-
-#[account]
-pub struct AmountDeposited {
     pub amount: u64,
 }
 

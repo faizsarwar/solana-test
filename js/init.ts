@@ -1,9 +1,9 @@
 const assert = require("assert");
 import * as anchor from '@project-serum/anchor';
 import { Program } from '@project-serum/anchor';
-import { DepositWithdraw } from '../target/types/deposit_withdraw';
+import { DepositWithdraw } from '../target/types/deposit_withdraw'
+var poolSecret = require('./pool.json');
 
-import poolSecret from '../pool.json';
 
 describe('deposit-withdraw', () => {
 
@@ -36,7 +36,7 @@ describe('deposit-withdraw', () => {
         vault: poolSigner,
         systemProgram: anchor.web3.SystemProgram.programId,
       },
-      signers: [poolKeypair, ],
+      signers: [poolKeypair ],
       instructions: [
           await program.account.pool.createInstruction(poolKeypair, ),
       ],
